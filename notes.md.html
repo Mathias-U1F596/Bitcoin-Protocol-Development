@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>notes.md</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__left">
+    <div class="stackedit__toc">
+      
+<ul>
+<li><a href="#chaincode-labs-seminar-–-exercises-for-bitcoin-protocol-development">Chaincode Labs Seminar – Exercises for Bitcoin Protocol Development</a>
+<ul>
+<li><a href="#using-docker">Using Docker</a></li>
+<li><a href="#task-1-compile-bitcoin-core">Task 1: Compile Bitcoin Core</a></li>
+<li><a href="#task-2-run-the-unit-and-functional-tests">Task 2: Run the unit and functional tests</a></li>
+<li><a href="#task-3-mine-a-block-and-send-it-to-another-node">Task 3: Mine a block and send it to another node</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="stackedit__right">
+    <div class="stackedit__html">
+      <h1 id="chaincode-labs-seminar-–-exercises-for-bitcoin-protocol-development">Chaincode Labs Seminar – Exercises for Bitcoin Protocol Development</h1>
+<h2 id="using-docker">Using Docker</h2>
+<pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">vi</span> Dockerfile
+</code></pre>
+<pre class=" language-docker"><code class="prism  language-docker"><span class="token keyword">FROM</span> debian<span class="token punctuation">:</span>bullseye
+
+<span class="token keyword">RUN</span> apt<span class="token punctuation">-</span>get update \
+	&amp;&amp; apt<span class="token punctuation">-</span>get install <span class="token punctuation">-</span><span class="token punctuation">-</span>yes <span class="token punctuation">-</span><span class="token punctuation">-</span>no<span class="token punctuation">-</span>install<span class="token punctuation">-</span>recommends \
+		ca<span class="token punctuation">-</span>certificates \
+		wget \
+		gnupg \
+	&amp;&amp; apt<span class="token punctuation">-</span>get install <span class="token punctuation">-</span><span class="token punctuation">-</span>yes \
+		bash<span class="token punctuation">-</span>completion \
+		curl \
+		git \
+		vim \
+	&amp;&amp; apt<span class="token punctuation">-</span>get clean \
+	&amp;&amp; rm <span class="token punctuation">-</span>rf \
+		/var/lib/apt/lists/* \
+		/tmp/* \
+		/var/tmp/*
+</code></pre>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token comment"># build Docker container</span>
+$ docker build -t bpd ./
+<span class="token comment"># list Docker images</span>
+$ docker image <span class="token function">ls</span>
+<span class="token comment"># list Docker containers</span>
+$ docker container <span class="token function">ls</span> -a
+<span class="token comment"># run Docker container</span>
+$ docker run -it bpd
+<span class="token comment"># start Docker container</span>
+$ docker start <span class="token variable">$containerIdOrName</span>
+<span class="token comment"># Bash into Docker container</span>
+$ docker <span class="token function">exec</span> -it <span class="token variable">$containerIdOrName</span> <span class="token function">bash</span>
+</code></pre>
+<h2 id="task-1-compile-bitcoin-core">Task 1: Compile Bitcoin Core</h2>
+<blockquote>
+<p>Compile Bitcoin Core (<a href="https://github.com/bitcoin/bitcoin">https://github.com/bitcoin/bitcoin</a>). You can see doc/build-*.md for instructions on building the various elements.</p>
+</blockquote>
+<h3 id="autogen">Autogen</h3>
+<pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> --yes autoconf libtool pkg-config
+$ <span class="token function">cd</span> /tmp/
+$ <span class="token function">git</span> clone <span class="token string">'https://github.com/bitcoin/bitcoin'</span>
+$ <span class="token function">cd</span> bitcoin/
+$ ./autogen.sh 2<span class="token operator">&gt;</span><span class="token operator">&amp;</span>1 <span class="token operator">|</span> <span class="token function">tee</span> autogen.sh.log
+</code></pre>
+<h3 id="configure">Configure</h3>
+<pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> --yes bsdmainutils build-essential gettext libboost1.74-dev libevent-dev libsqlite3-dev libzmq3-dev qttools5-dev-tools
+<span class="token comment"># Without BDB 4.</span>
+<span class="token comment"># (Skip this if you want to have BDB 4 and continue with the next point.)</span>
+./configure 2<span class="token operator">&gt;</span><span class="token operator">&amp;</span>1 <span class="token operator">|</span> <span class="token function">tee</span> configure.log
+
+<span class="token comment"># With BDB 4.</span>
+<span class="token comment"># Must specify a single argument: the directory in which db4 will be built.</span>
+<span class="token comment"># This is probably `pwd` if you're at the root of the bitcoin repository.</span>
+./contrib/install_db4.sh <span class="token string">"<span class="token variable"><span class="token variable">$(</span><span class="token function">pwd</span><span class="token variable">)</span></span>"</span> 2<span class="token operator">&gt;</span><span class="token operator">&amp;</span>1 <span class="token operator">|</span> <span class="token function">tee</span> install_db4.sh.log
+<span class="token function">export</span> BDB_PREFIX<span class="token operator">=</span><span class="token string">'/tmp/bitcoin/db4'</span>
+./configure BDB_LIBS<span class="token operator">=</span><span class="token string">"-L<span class="token variable">${BDB_PREFIX}</span>/lib -ldb_cxx-4.8"</span> BDB_CFLAGS<span class="token operator">=</span><span class="token string">"-I<span class="token variable">${BDB_PREFIX}</span>/include"</span> 2<span class="token operator">&gt;</span><span class="token operator">&amp;</span>1 <span class="token operator">|</span> <span class="token function">tee</span> configure.log
+</code></pre>
+<h3 id="make">Make</h3>
+<pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">export</span> JOBS_NUMBER<span class="token operator">=</span>12
+$ <span class="token function">time</span> <span class="token function">make</span> -j <span class="token string">"<span class="token variable">${JOBS_NUMBER}</span>"</span> 2<span class="token operator">&gt;</span><span class="token operator">&amp;</span>1 <span class="token operator">|</span> <span class="token function">tee</span> make.log
+</code></pre>
+<h3 id="make-install">Make install</h3>
+<pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">make</span> <span class="token function">install</span> 2<span class="token operator">&gt;</span><span class="token operator">&amp;</span>1 <span class="token operator">|</span> <span class="token function">tee</span> make-install.log
+</code></pre>
+<h3 id="copying-relevant-output-files">Copying relevant output files</h3>
+<pre class=" language-bash"><code class="prism  language-bash">$ docker commit -m <span class="token string">'Task 1 solved.'</span> <span class="token variable">$containerIdOrName</span> bpd:task1
+$ docker <span class="token function">cp</span> <span class="token variable">$containerIdOrName</span>:/tmp/bitcoin/autogen.sh.log <span class="token keyword">.</span>
+$ docker <span class="token function">cp</span> <span class="token variable">$containerIdOrName</span>:/tmp/bitcoin/install_db4.sh.log <span class="token keyword">.</span>
+$ docker <span class="token function">cp</span> <span class="token variable">$containerIdOrName</span>:/tmp/bitcoin/configure.log <span class="token keyword">.</span>
+$ docker <span class="token function">cp</span> <span class="token variable">$containerIdOrName</span>:/tmp/bitcoin/make.log <span class="token keyword">.</span>
+$ docker <span class="token function">cp</span> <span class="token variable">$containerIdOrName</span>:/tmp/bitcoin/make-install.log <span class="token keyword">.</span>
+</code></pre>
+<h3 id="problems--solutions">Problems &amp; Solutions</h3>
+<ul>
+<li>
+<p>LRELEASE</p>
+<blockquote>
+<p>configure: WARNING: LRELEASE not found; bitcoin-qt frontend will not be built</p>
+</blockquote>
+<pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> --yes qttools5-dev-tools
+</code></pre>
+</li>
+<li>
+<p>gettext</p>
+<blockquote>
+<p>configure: WARNING: xgettext is required to update qt translations</p>
+</blockquote>
+<pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> --yes gettext
+</code></pre>
+</li>
+<li>
+<p>SQLite</p>
+<blockquote>
+<p>test_framework.authproxy.JSONRPCException: Compiled without sqlite support (required for descriptor wallets)</p>
+</blockquote>
+<blockquote>
+<p>error message: ‘Compiled without sqlite support (required for descriptor wallets)’.</p>
+</blockquote>
+<pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> --yes libsqlite3-dev
+</code></pre>
+</li>
+</ul>
+<h2 id="task-2-run-the-unit-and-functional-tests">Task 2: Run the unit and functional tests</h2>
+<blockquote>
+<p>Run the unit and functional tests. Instructions on how to do that can be found here: (<a href="https://github.com/bitcoin/bitcoin/blob/master/test/README.md">https://github.com/bitcoin/bitcoin/blob/master/test/README.md</a>).</p>
+</blockquote>
+<pre class=" language-bash"><code class="prism  language-bash">$ <span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> --yes python3-zmq
+$ <span class="token function">time</span> test/functional/test_runner.py --extended 2<span class="token operator">&gt;</span><span class="token operator">&amp;</span>1 <span class="token operator">|</span> <span class="token function">tee</span> test_runner.py.log
+real    62m53.282s
+user    86m31.072s
+sys     8m5.844s
+</code></pre>
+<h3 id="copying-relevant-output-files-1">Copying relevant output files</h3>
+<pre class=" language-bash"><code class="prism  language-bash">$ docker commit -m <span class="token string">'Task 2 solved.'</span> <span class="token variable">$containerIdOrName</span> bpd:task2
+$ docker <span class="token function">cp</span> <span class="token variable">$containerIdOrName</span>:/tmp/bitcoin/test_runner.py.log <span class="token keyword">.</span>
+</code></pre>
+<h2 id="task-3-mine-a-block-and-send-it-to-another-node">Task 3: Mine a block and send it to another node</h2>
+<blockquote>
+<p>Look at example_test.py in the functional test directory and try getting node 1 to mine another block, send it to node 2, and check that node 2 received it. In your response to this email, please include a link to a gist or code snippet that you used to complete this step.</p>
+</blockquote>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token comment"># create backup</span>
+$ <span class="token function">cp</span> test/functional/example_test.py<span class="token punctuation">{</span>,.bak<span class="token punctuation">}</span>
+<span class="token comment"># edit example</span>
+$ <span class="token function">vi</span> test/functional/example_test.py
+</code></pre>
+<pre class=" language-python"><code class="prism  language-python">    <span class="token keyword">def</span> <span class="token function">run_test</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""Main test logic"""</span>
+        self<span class="token punctuation">.</span>log<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"Chaincode Labs Seminar - Exercises for Bitcoin Protocol Development"</span><span class="token punctuation">)</span>
+
+        peer_messaging <span class="token operator">=</span> self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>add_p2p_connection<span class="token punctuation">(</span>BaseNode<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+        blocks <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token builtin">int</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>generate<span class="token punctuation">(</span>self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> sync_fun<span class="token operator">=</span><span class="token keyword">lambda</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>sync_all<span class="token punctuation">(</span>self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">:</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span> nblocks<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">]</span>
+
+        self<span class="token punctuation">.</span>log<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"Mine block with node 1 ..."</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>tip <span class="token operator">=</span> <span class="token builtin">int</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>getbestblockhash<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">16</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>block_time <span class="token operator">=</span> self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>getblock<span class="token punctuation">(</span>self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>getbestblockhash<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token string">'time'</span><span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token number">1</span>
+        height <span class="token operator">=</span> self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>getblockcount<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        block <span class="token operator">=</span> create_block<span class="token punctuation">(</span>self<span class="token punctuation">.</span>tip<span class="token punctuation">,</span> create_coinbase<span class="token punctuation">(</span>height <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> self<span class="token punctuation">.</span>block_time<span class="token punctuation">)</span>
+        block<span class="token punctuation">.</span>solve<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        block_message <span class="token operator">=</span> msg_block<span class="token punctuation">(</span>block<span class="token punctuation">)</span>
+        peer_messaging<span class="token punctuation">.</span>send_message<span class="token punctuation">(</span>block_message<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>tip <span class="token operator">=</span> block<span class="token punctuation">.</span>sha256
+        blocks<span class="token punctuation">.</span>append<span class="token punctuation">(</span>self<span class="token punctuation">.</span>tip<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>block_time <span class="token operator">+=</span> <span class="token number">1</span>
+        height <span class="token operator">+=</span> <span class="token number">1</span>
+
+        self<span class="token punctuation">.</span>log<span class="token punctuation">.</span>debug<span class="token punctuation">(</span><span class="token string">'node 1: '</span> <span class="token operator">+</span> self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>getbestblockhash<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>log<span class="token punctuation">.</span>debug<span class="token punctuation">(</span><span class="token string">'node 2: '</span> <span class="token operator">+</span> self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">.</span>getbestblockhash<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+        self<span class="token punctuation">.</span>log<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"... send it to node 2 ..."</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>connect_nodes<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>sync_all<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>disconnect_p2ps<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+        self<span class="token punctuation">.</span>log<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"... and check that node 2 received it ..."</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>log<span class="token punctuation">.</span>debug<span class="token punctuation">(</span><span class="token string">'node 1: '</span> <span class="token operator">+</span> self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>getbestblockhash<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>log<span class="token punctuation">.</span>debug<span class="token punctuation">(</span><span class="token string">'node 2: '</span> <span class="token operator">+</span> self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">.</span>getbestblockhash<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        assert_equal<span class="token punctuation">(</span>
+            self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>getbestblockhash<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            self<span class="token punctuation">.</span>nodes<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">.</span>getbestblockhash<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<pre class=" language-bash"><code class="prism  language-bash">$ test/functional/test_runner.py example_test.py 2<span class="token operator">&gt;</span><span class="token operator">&amp;</span>1 <span class="token operator">|</span> <span class="token function">tee</span> example_test.py.log
+</code></pre>
+<h3 id="copying-relevant-output-files-2">Copying relevant output files</h3>
+<pre class=" language-bash"><code class="prism  language-bash">$ docker commit -m <span class="token string">'Task 3 solved.'</span> <span class="token variable">$containerIdOrName</span> bpd:task3
+$ docker <span class="token function">cp</span> <span class="token variable">$containerIdOrName</span>:/tmp/bitcoin/test/functional/example_test.py <span class="token keyword">.</span>
+$ docker <span class="token function">cp</span> <span class="token variable">$containerIdOrName</span>:/tmp/bitcoin/example_test.py.log <span class="token keyword">.</span>
+</code></pre>
+
+    </div>
+  </div>
+</body>
+
+</html>

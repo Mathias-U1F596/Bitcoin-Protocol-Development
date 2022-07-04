@@ -1,0 +1,65 @@
+Making install in src
+make[1]: Entering directory '/tmp/bitcoin/src'
+make[2]: Entering directory '/tmp/bitcoin/src'
+make[3]: Entering directory '/tmp/bitcoin'
+make[3]: Leaving directory '/tmp/bitcoin'
+make[3]: Entering directory '/tmp/bitcoin/src'
+make[4]: Entering directory '/tmp/bitcoin'
+make[4]: Leaving directory '/tmp/bitcoin'
+ /bin/mkdir -p '/usr/local/lib'
+ /bin/bash ../libtool --preserve-dup-deps  --mode=install /usr/bin/install -c   libbitcoinconsensus.la '/usr/local/lib'
+libtool: install: /usr/bin/install -c .libs/libbitcoinconsensus.so.0.0.0 /usr/local/lib/libbitcoinconsensus.so.0.0.0
+libtool: install: (cd /usr/local/lib && { ln -s -f libbitcoinconsensus.so.0.0.0 libbitcoinconsensus.so.0 || { rm -f libbitcoinconsensus.so.0 && ln -s libbitcoinconsensus.so.0.0.0 libbitcoinconsensus.so.0; }; })
+libtool: install: (cd /usr/local/lib && { ln -s -f libbitcoinconsensus.so.0.0.0 libbitcoinconsensus.so || { rm -f libbitcoinconsensus.so && ln -s libbitcoinconsensus.so.0.0.0 libbitcoinconsensus.so; }; })
+libtool: install: /usr/bin/install -c .libs/libbitcoinconsensus.lai /usr/local/lib/libbitcoinconsensus.la
+libtool: install: /usr/bin/install -c .libs/libbitcoinconsensus.a /usr/local/lib/libbitcoinconsensus.a
+libtool: install: chmod 644 /usr/local/lib/libbitcoinconsensus.a
+libtool: install: ranlib /usr/local/lib/libbitcoinconsensus.a
+libtool: finish: PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/sbin" ldconfig -n /usr/local/lib
+----------------------------------------------------------------------
+Libraries have been installed in:
+   /usr/local/lib
+
+If you ever happen to want to link against installed libraries
+in a given directory, LIBDIR, you must either use libtool, and
+specify the full pathname of the library, or use the '-LLIBDIR'
+flag during linking and do at least one of the following:
+   - add LIBDIR to the 'LD_LIBRARY_PATH' environment variable
+     during execution
+   - add LIBDIR to the 'LD_RUN_PATH' environment variable
+     during linking
+   - use the '-Wl,-rpath -Wl,LIBDIR' linker flag
+   - have your system administrator add LIBDIR to '/etc/ld.so.conf'
+
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+----------------------------------------------------------------------
+ /bin/mkdir -p '/usr/local/bin'
+  /bin/bash ../libtool --preserve-dup-deps  --mode=install /usr/bin/install -c bitcoind bitcoin-cli bitcoin-tx bitcoin-wallet bitcoin-util test/test_bitcoin bench/bench_bitcoin '/usr/local/bin'
+libtool: install: /usr/bin/install -c bitcoind /usr/local/bin/bitcoind
+libtool: install: /usr/bin/install -c bitcoin-cli /usr/local/bin/bitcoin-cli
+libtool: install: /usr/bin/install -c bitcoin-tx /usr/local/bin/bitcoin-tx
+libtool: install: /usr/bin/install -c bitcoin-wallet /usr/local/bin/bitcoin-wallet
+libtool: install: /usr/bin/install -c bitcoin-util /usr/local/bin/bitcoin-util
+libtool: install: /usr/bin/install -c test/test_bitcoin /usr/local/bin/test_bitcoin
+libtool: install: /usr/bin/install -c bench/bench_bitcoin /usr/local/bin/bench_bitcoin
+ /bin/mkdir -p '/usr/local/include'
+ /usr/bin/install -c -m 644 script/bitcoinconsensus.h '/usr/local/include'
+make[3]: Leaving directory '/tmp/bitcoin/src'
+make[2]: Leaving directory '/tmp/bitcoin/src'
+make[1]: Leaving directory '/tmp/bitcoin/src'
+Making install in doc/man
+make[1]: Entering directory '/tmp/bitcoin/doc/man'
+make[2]: Entering directory '/tmp/bitcoin/doc/man'
+make[2]: Nothing to be done for 'install-exec-am'.
+ /bin/mkdir -p '/usr/local/share/man/man1'
+ /usr/bin/install -c -m 644 bitcoind.1 bitcoin-cli.1 bitcoin-tx.1 bitcoin-util.1 bitcoin-wallet.1 '/usr/local/share/man/man1'
+make[2]: Leaving directory '/tmp/bitcoin/doc/man'
+make[1]: Leaving directory '/tmp/bitcoin/doc/man'
+make[1]: Entering directory '/tmp/bitcoin'
+make[2]: Entering directory '/tmp/bitcoin'
+make[2]: Nothing to be done for 'install-exec-am'.
+ /bin/mkdir -p '/usr/local/lib/pkgconfig'
+ /usr/bin/install -c -m 644 libbitcoinconsensus.pc '/usr/local/lib/pkgconfig'
+make[2]: Leaving directory '/tmp/bitcoin'
+make[1]: Leaving directory '/tmp/bitcoin'

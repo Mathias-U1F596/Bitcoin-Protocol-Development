@@ -1,0 +1,17 @@
+Temporary test directory at /tmp/test_runner_₿_🏃_20220630_154924
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 1.171s
+
+OK
+1/1 - example_test.py passed, Duration: 1 s
+Running Unit Tests for Test Framework Modules
+Remaining jobs: [example_test.py]
+
+TEST            | STATUS    | DURATION
+
+example_test.py | ✓ Passed  | 1 s
+
+ALL             | ✓ Passed  | 1 s (accumulated) 
+Runtime: 1 s
+
